@@ -1,0 +1,71 @@
+---
+
+- name: check if ca cert is present
+  ansible.builtin.stat:
+    path: /home/adminuser/ca.crt
+  register: ca_present
+
+- name: CA Creation
+  when: not ca_present.stat.exists
+  block: 
+  - name: copy ca config
+    ansible.builtin.copy:
+      src: files/ca.conf
+      dest: /home/adminuser/ca.conf
+      owner: adminuser
+
+  - name: Get openssl ca key
+    become: true
+    ansible.builtin.shell: "openssl genrsa -out ca.key 4096"
+    args:
+      chdir: /home/adminuser
+
+  - name: Get openssl cert
+    become: true
+    ansible.builtin.shell: >
+        openssl req -x509 -new -sha512 -noenc \
+        -key ca.key -days 3653 \
+        -config ca.conf \
+        -out ca.crt
+    args:
+      chdir: /home/adminuser
+
+- name: Copy certs template files
+  ansible.builtin.copy:
+    src: files/certs
+    dest: /home/adminuser/certs
+    owner: adminuser
+
+- name: check if certs are present
+  ansible.builtin.stat:
+    path: /home/adminuser/service-accounts.crt
+  register: certs_present
+
+- name: Create certs from template
+  become: true
+  when: not certs_present.stat.exists
+  ansible.builtin.shell: |
+    openssl genrsa -out "{{ item }}.key" 4096
+
+    openssl req -new -key "{{ item }}.key" -sha256 \
+      -config "ca.conf" -section {{ item }} \
+      -out "{{ item }}.csr"
+    
+    openssl x509 -req -days 3653 -in "{{ item }}.csr" \
+      -copy_extensions copyall \
+      -sha256 -CA "ca.crt" \
+      -CAkey "ca.key" \
+      -CAcreateserial \
+      -out "{{ item }}.crt"
+  args:
+    chdir: /home/adminuser
+  with_items:
+    - admin
+    - node-0
+    - node-1
+    - kube-api-server
+    - kube-controller-manager
+    - kube-scheduler
+    - kube-proxy
+    - service-accounts
+  

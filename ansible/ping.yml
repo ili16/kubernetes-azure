@@ -1,0 +1,8 @@
+---
+
+- hosts: all
+  gather_facts: true
+  remote_user: adminuser
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:

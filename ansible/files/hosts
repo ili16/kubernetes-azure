@@ -1,0 +1,5 @@
+
+# Kubernetes The Hard Way
+10.0.2.10 server.internal.cloudapp.net server
+10.0.2.20 worker0.internal.cloudapp.net worker0
+10.0.2.21 worker1.internal.cloudapp.net worker1

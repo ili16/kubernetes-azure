@@ -1,0 +1,85 @@
+---
+
+- name: Install Prerequisites
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg: 
+    - rsync
+
+- name: change sshd config to permit root login
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PermitRootLogin'
+    line: PermitRootLogin yes
+  register: task
+
+- name: Restart service sshd
+  when: task.changed
+  become: true
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: make kubelet directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/kubelet
+    state: directory
+    mode: '0755'
+
+- name: make kube-proxy directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/kube-proxy
+    state: directory
+    mode: '0755'
+
+- name: copy ca certificate
+  become: true
+  delegate_to: jumpbox
+  ansible.builtin.synchronize:
+    src: /home/adminuser/ca.crt
+    dest: /var/lib/kubelet/ca.crt
+    private_key: /home/adminuser/private.key
+
+- name: Check if cert already exists
+  become: true
+  ansible.builtin.stat:
+    path: /var/lib/kubelet/kubelet.crt
+  register: cert_exists
+
+- name: copy certs
+  when: not cert_exists.stat.exists
+  delegate_to: jumpbox
+  become: true
+  ansible.builtin.synchronize:
+    src: /home/adminuser/{{ ansible_hostname }}.crt
+    dest: /var/lib/kubelet/kubelet.crt
+    private_key: /home/adminuser/private.key
+
+- name: copy keys
+  when: not cert_exists.stat.exists
+  delegate_to: jumpbox
+  become: true
+  ansible.builtin.synchronize:
+    src: /home/adminuser/{{ ansible_hostname }}.key
+    dest: /var/lib/kubelet/kubelet.key
+    private_key: /home/adminuser/private.key
+
+- name: copy kube-proxy
+  delegate_to: jumpbox
+  become: true
+  ansible.builtin.synchronize:
+    src: /home/adminuser/kube-proxy.kubeconfig
+    dest: /var/lib/kube-proxy/kubeconfig
+    private_key: /home/adminuser/private.key
+
+- name: copy node kubeconfig
+  delegate_to: jumpbox
+  become: true
+  ansible.builtin.synchronize:
+    src: /home/adminuser/{{ ansible_hostname }}.kubeconfig
+    dest: /var/lib/kubelet/kubeconfig
+    private_key: /home/adminuser/private.key

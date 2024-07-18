@@ -1,0 +1,64 @@
+---
+
+- name: Copy etcd archive
+  ansible.builtin.copy:
+    src: downloads/etcd-v3.4.27-linux-amd64.tar.gz
+    dest: /home/adminuser/etcd.tar.gz
+    owner: adminuser
+
+- name: Copy service file
+  ansible.builtin.copy:
+    src: files/units/etcd.service
+    dest: /home/adminuser/etcd.service
+    owner: adminuser
+
+- name: Unarchive etcd
+  become: true
+  ansible.builtin.unarchive:
+    src: /home/adminuser/etcd.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+    extra_opts: ['--strip-components=1', '--show-stored-names']
+
+- name: make etcd folder
+  become: true
+  ansible.builtin.file:
+    path: /etc/etcd
+    state: directory
+  
+- name: make var etcd folder
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/etcd
+    state: directory
+    mode: 0700
+
+- name: copy files
+  become: true
+  delegate_to: jumpbox
+  ansible.builtin.synchronize:
+    src: /home/adminuser/{{ item }}
+    dest: /etc/etcd/{{ item }}
+    private_key: /home/adminuser/private.key
+  with_items:
+    - ca.crt
+    - kube-api-server.key
+    - kube-api-server.crt
+
+- name: Copy etcd service file
+  become: true
+  ansible.builtin.copy:
+    src: files/units/etcd.service
+    dest: /etc/systemd/system/etcd.service
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Enable and start etcd
+  become: true
+  ansible.builtin.systemd:
+    name: etcd.service
+    state: started
+    enabled: true

@@ -1,0 +1,54 @@
+---
+
+- name: Install Prerequisites
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg: 
+    - curl
+    - vim
+    - wget
+    - openssl
+    - git
+    - dnsutils
+    - rsync
+
+- name: Copy Private Key
+  ansible.builtin.copy:
+    src: ~/.ssh/id_rsa
+    dest: /home/adminuser/private.key
+    owner: adminuser
+    mode: '0600'
+
+- name: download kube binaries locally
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.shell: >
+    wget -q --show-progress
+    --https-only
+    --timestamping
+    -P downloads
+    -i files/downloads.txt
+
+- name: Copy kubernetes binaries to server
+  become: true
+  ansible.builtin.copy:
+    src: downloads/kubectl
+    dest: /usr/local/bin/kubectl
+    owner: adminuser
+    mode: a+x
+
+- name: change sshd config to permit root login
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PermitRootLogin'
+    line: PermitRootLogin yes
+  register: task
+
+- name: Restart service sshd
+  when: task.changed
+  become: true
+  ansible.builtin.service:
+    name: sshd
+    state: restarted

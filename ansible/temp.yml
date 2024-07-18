@@ -1,0 +1,13 @@
+---
+
+- hosts: server
+  remote_user: adminuser
+  gather_facts: false
+  tasks:
+    - name: include some file
+      ansible.builtin.include_tasks:
+        file: "{{ item }}"
+      loop:
+        - encryption.yml
+        - etcd.yml
+        - bootstrap_kubernetes.yml

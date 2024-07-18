@@ -1,0 +1,11 @@
+**/.terraform/*
+
+**/downloads/
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+
+.terraform.tfstate.lock.info
+.terraform.lock.hcl

@@ -1,0 +1,49 @@
+---
+
+- hosts: all
+  gather_facts: true
+  remote_user: adminuser
+  tasks:
+    - name: Include host file edit task
+      ansible.builtin.include_tasks:
+        file: hosts_file.yml
+    
+    - name: Include Pre-Requisites for jumpbox
+      when: inventory_hostname in groups['jumpbox']
+      ansible.builtin.include_tasks:
+        file: pre-req.yml
+
+    - name: Include CA Task
+      when: inventory_hostname in groups['jumpbox']
+      ansible.builtin.include_tasks:
+        file: ca.yml
+
+    - name: generate encryption CRD
+      ansible.builtin.include_tasks:
+        file: encryption.yml
+
+    - name: Include kubeconfig generation task
+      when: inventory_hostname in groups['jumpbox']
+      ansible.builtin.include_tasks:
+        file: kubeconfig.yml
+        
+    - name: Include server config distribution
+      when: inventory_hostname in groups['server']
+      ansible.builtin.include_tasks:
+        file: distribute_server.yml
+
+    - name: Include worker config distribution
+      when: inventory_hostname in groups['worker']
+      ansible.builtin.include_tasks:
+        file: distribute_worker.yml
+
+    - name: Include etcd and boostrap on server
+      when: inventory_hostname in groups['server']
+      block:
+        - name: include etcd task
+          ansible.builtin.include_tasks:
+            file: etcd.yml
+
+        - name: include boostraping kubernetes task
+          ansible.builtin.include_tasks:
+            file: bootstrap_kubernetes.yml

@@ -1,0 +1,11 @@
+---
+
+- name: Copy hosts dns data
+  ansible.builtin.copy:
+    src: files/hosts
+    dest: /home/adminuser/hosts
+    owner: adminuser
+
+- name: Append to hosts file
+  become: true
+  ansible.builtin.shell: cat /home/adminuser/hosts >> /etc/hosts
