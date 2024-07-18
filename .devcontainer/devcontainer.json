@@ -1,8 +1,23 @@
 {
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/ansible:2": {},
-		"ghcr.io/devcontainers-contrib/features/terraform-asdf:2": {},
-		"ghcr.io/hspaans/devcontainer-features/ansible-lint:1": {}
+		"ghcr.io/devcontainers-contrib/features/ansible:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/terraform-asdf:2": {
+			"version": "latest"
+		},
+		"ghcr.io/hspaans/devcontainer-features/ansible-lint:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"installUsingPython": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+			"plugins": "ssh-agent npm",
+			"omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions",
+			"username": "vscode"
+		}
 	}
 }
