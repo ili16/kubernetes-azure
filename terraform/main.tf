@@ -73,16 +73,6 @@ resource "azurerm_network_interface" "server-nic" {
   
 }
 
-resource "azurerm_public_ip" "node-1_publicip" {
-  name                = "node-1_publicip"
-  resource_group_name = azurerm_resource_group.kubernetes-hard-way.name
-  location            = azurerm_resource_group.kubernetes-hard-way.location
-  allocation_method   = "Static"
-
-  tags = {
-    environment = "Production"
-  }
-}
 
 resource "azurerm_network_interface" "node-1-nic" {
     name = "node-1-nic"
@@ -94,7 +84,6 @@ resource "azurerm_network_interface" "node-1-nic" {
       subnet_id = azurerm_subnet.kubernetes-subnet.id
       private_ip_address_allocation = "Static"
       private_ip_address = "10.0.2.20"
-      public_ip_address_id = azurerm_public_ip.node-1_publicip.id
     }
 }
 
@@ -242,8 +231,3 @@ output "jumpbox_public_ip" {
 output "server_public_ip" {
   value = azurerm_public_ip.server_publicip.ip_address
 }
-
-output "node_1_public_ip" {
-  value = azurerm_public_ip.node-1_publicip.ip_address
-}
-
