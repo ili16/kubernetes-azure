@@ -1,0 +1,5 @@
+---
+
+ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q adminuser@{{ lookup("pipe", "cd ../terraform && terraform output -raw jumpbox_public_ip") }}"'
+
+

@@ -6,44 +6,49 @@
   tasks:
     - name: Include host file edit task
       ansible.builtin.include_tasks:
-        file: hosts_file.yml
-    
+        file: tasks/hosts_file.yml
+
     - name: Include Pre-Requisites for jumpbox
       when: inventory_hostname in groups['jumpbox']
       ansible.builtin.include_tasks:
-        file: pre-req.yml
+        file: tasks/pre-req.yml
 
     - name: Include CA Task
       when: inventory_hostname in groups['jumpbox']
       ansible.builtin.include_tasks:
-        file: ca.yml
+        file: tasks/ca.yml
 
-    - name: generate encryption CRD
+    - name: Generate encryption CRD
       ansible.builtin.include_tasks:
-        file: encryption.yml
+        file: tasks/encryption.yml
 
     - name: Include kubeconfig generation task
       when: inventory_hostname in groups['jumpbox']
       ansible.builtin.include_tasks:
-        file: kubeconfig.yml
-        
+        file: tasks/kubeconfig.yml
+
     - name: Include server config distribution
       when: inventory_hostname in groups['server']
       ansible.builtin.include_tasks:
-        file: distribute_server.yml
+        file: tasks/distribute_server.yml
 
     - name: Include worker config distribution
       when: inventory_hostname in groups['worker']
       ansible.builtin.include_tasks:
-        file: distribute_worker.yml
+        file: tasks/distribute_worker.yml
 
     - name: Include etcd and boostrap on server
       when: inventory_hostname in groups['server']
       block:
-        - name: include etcd task
+        - name: Include etcd task
           ansible.builtin.include_tasks:
-            file: etcd.yml
+            file: tasks/etcd.yml
 
-        - name: include boostraping kubernetes task
+        - name: Include boostraping kubernetes task
           ansible.builtin.include_tasks:
-            file: bootstrap_kubernetes.yml
+            file: tasks/bootstrap_kubernetes.yml
+  handlers:
+    - name: Restart sshd
+      service:
+        name: sshd
+        state: restarted

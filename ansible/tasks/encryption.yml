@@ -1,0 +1,19 @@
+---
+
+- name: Generate Random string
+  ansible.builtin.set_fact:
+    ENCRYPTION_KEY: "{{ lookup('community.general.random_string', length=32, base64=True) }}"
+
+- name: Make config folder
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/kubernetes/
+    state: directory
+    mode: "0640"
+
+- name: Template encryption file
+  become: true
+  ansible.builtin.template:
+    src: files/encryption-config.yaml.j2
+    dest: /var/lib/kubernetes/encryption-config.yaml
+    mode: "0640"

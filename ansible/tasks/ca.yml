@@ -1,18 +1,19 @@
 ---
 
-- name: check if ca cert is present
+- name: Check if ca cert is present
   ansible.builtin.stat:
     path: /home/adminuser/ca.crt
   register: ca_present
 
 - name: CA Creation
   when: not ca_present.stat.exists
-  block: 
-  - name: copy ca config
+  block:
+  - name: Copy ca config
     ansible.builtin.copy:
       src: files/ca.conf
       dest: /home/adminuser/ca.conf
       owner: adminuser
+      mode: 0644
 
   - name: Get openssl ca key
     become: true
@@ -36,7 +37,7 @@
     dest: /home/adminuser/certs
     owner: adminuser
 
-- name: check if certs are present
+- name: Check if certs are present
   ansible.builtin.stat:
     path: /home/adminuser/service-accounts.crt
   register: certs_present

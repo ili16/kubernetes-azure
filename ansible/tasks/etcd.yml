@@ -1,41 +1,47 @@
 ---
 
-- name: Copy etcd archive
-  ansible.builtin.copy:
-    src: downloads/etcd-v3.4.27-linux-amd64.tar.gz
-    dest: /home/adminuser/etcd.tar.gz
-    owner: adminuser
-
-- name: Copy service file
-  ansible.builtin.copy:
-    src: files/units/etcd.service
-    dest: /home/adminuser/etcd.service
-    owner: adminuser
-
 - name: Unarchive etcd
   become: true
   ansible.builtin.unarchive:
-    src: /home/adminuser/etcd.tar.gz
-    dest: /usr/local/bin
-    remote_src: true
-    extra_opts: ['--strip-components=1', '--show-stored-names']
+    src: downloads/etcd-v3.4.27-linux-amd64.tar.gz
+    dest: /home/adminuser/
+    extra_opts: ['--show-stored-names']
 
-- name: make etcd folder
+- name: Copy etcd
+  become: true
+  ansible.builtin.copy:
+    src: /home/adminuser/etcd-v3.4.27-linux-amd64/{{item}}
+    dest: /usr/local/bin/{{item}}
+    remote_src: true
+    mode: "0755"
+  with_items:
+    - etcd
+    - etcdctl
+
+- name: Make etcd folder
   become: true
   ansible.builtin.file:
     path: /etc/etcd
     state: directory
-  
-- name: make var etcd folder
+    mode: "0740"
+
+- name: Make var etcd folder
   become: true
   ansible.builtin.file:
     path: /var/lib/etcd
     state: directory
-    mode: 0700
+    mode: "0700"
+
+- name: Copy etcd service file
+  become: true
+  ansible.builtin.copy:
+    src: files/units/etcd.service
+    dest: /etc/systemd/system/etcd.service
+    mode: "0640"
 
 - name: copy files
   become: true
-  delegate_to: jumpbox
+  delegate_to: "{{ hostvars[groups['jumpbox'][0]]['ansible_host'] }}"
   ansible.builtin.synchronize:
     src: /home/adminuser/{{ item }}
     dest: /etc/etcd/{{ item }}
@@ -44,12 +50,6 @@
     - ca.crt
     - kube-api-server.key
     - kube-api-server.crt
-
-- name: Copy etcd service file
-  become: true
-  ansible.builtin.copy:
-    src: files/units/etcd.service
-    dest: /etc/systemd/system/etcd.service
 
 - name: Reload systemd
   become: true
@@ -62,3 +62,7 @@
     name: etcd.service
     state: started
     enabled: true
+
+- name: Check etcd status
+  become: true
+  ansible.builtin.shell: etcdctl member list

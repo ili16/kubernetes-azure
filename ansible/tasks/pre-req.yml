@@ -3,15 +3,15 @@
 - name: Install Prerequisites
   become: true
   ansible.builtin.apt:
-    update_cache: yes
-    pkg: 
-    - curl
-    - vim
-    - wget
-    - openssl
-    - git
-    - dnsutils
-    - rsync
+    update_cache: true
+    pkg:
+      - curl
+      - vim
+      - wget
+      - openssl
+      - git
+      - dnsutils
+      - rsync
 
 - name: Copy Private Key
   ansible.builtin.copy:
@@ -20,7 +20,7 @@
     owner: adminuser
     mode: '0600'
 
-- name: download kube binaries locally
+- name: Download kube binaries locally
   delegate_to: localhost
   run_once: true
   ansible.builtin.shell: >

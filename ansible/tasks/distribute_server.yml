@@ -1,0 +1,65 @@
+---
+
+- name: Install Prerequisites
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    pkg:
+    - rsync
+
+- name: Make config folder
+  become: true
+  ansible.builtin.file:
+    path: /etc/kubernetes/config
+    state: directory
+    mode: "0640"
+
+- name: Change sshd config to permit root login
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PermitRootLogin'
+    line: PermitRootLogin yes
+  register: task
+  notify: Restart sshd
+
+- name: Copy kubernetes server certs
+  become: true
+  delegate_to: "{{ hostvars[groups['jumpbox'][0]]['ansible_host'] }}"
+  ansible.posix.synchronize:
+    src: /home/adminuser/{{ stuff }}
+    dest: /var/lib/kubernetes/{{ stuff }}
+    mode: push
+    private_key: /home/adminuser/private.key
+  loop:
+    - kube-api-server.crt
+    - service-accounts.crt
+    - ca.crt
+    - ca.key
+    - kube-api-server.key
+    - service-accounts.key
+    - admin.kubeconfig
+    - kube-controller-manager.kubeconfig
+    - kube-scheduler.kubeconfig
+  loop_control:
+    loop_var: stuff
+
+- name: Copy kube api server service file
+  become: true
+  ansible.builtin.copy:
+    src: files/units/{{ service }}
+    dest: /etc/systemd/system/{{ service }}
+    mode: "0640"
+  loop: 
+    - kube-apiserver.service
+    - kube-controller-manager.service
+    - kube-scheduler.service
+  loop_control: 
+    loop_var: service
+
+- name: Copy kube scheduler config
+  become: true
+  ansible.builtin.copy:
+    src: files/configs/kube-scheduler.yaml
+    dest: /etc/kubernetes/config/kube-scheduler.yaml
+    mode: "0640"

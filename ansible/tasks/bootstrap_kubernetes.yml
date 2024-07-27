@@ -1,0 +1,72 @@
+---
+
+- name: Copy Binaries
+  become: true
+  ansible.builtin.copy:
+    src: downloads/{{ binary }}
+    dest: /usr/local/bin/{{ binary }}
+    mode: +x
+  loop: 
+    - kube-controller-manager
+    - kube-scheduler
+    - kubectl
+    - kube-apiserver
+  loop_control:
+    loop_var: binary
+
+- name: Copy service units
+  become: true
+  ansible.builtin.copy:
+    src: files/units/{{ service_unit }}
+    dest: /etc/systemd/system/{{ service_unit }}
+    mode: "0640"
+  loop: 
+    - kube-apiserver.service
+    - kube-controller-manager.service
+    - kube-scheduler.service
+  loop_control:
+    loop_var: service_unit
+
+- name: Reload daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start services
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+  loop: 
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+  loop_control:
+    loop_var: service
+
+- name: Wait for cluster to be available
+  ansible.builtin.wait_for:
+    port: 6443
+    delay: 10
+    timeout: 300
+    state: started
+
+- name: Output info
+  become: true
+  ansible.builtin.shell: kubectl cluster-info --kubeconfig /var/lib/kubernetes/admin.kubeconfig
+  register: cluster_info
+
+- name: Display cluster info
+  ansible.builtin.debug:
+    var: cluster_info.stdout
+
+- name: Copy RBAC kubelet
+  ansible.builtin.copy:
+    src: files/configs/kube-apiserver-to-kubelet.yaml
+    dest: /home/adminuser/kube-apiserver-to-kubelet.yaml
+    mode: "0640"
+
+- name: Apply RBAC kubelet
+  become: true
+  ansible.builtin.shell: kubectl apply -f /home/adminuser/kube-apiserver-to-kubelet.yaml --kubeconfig /var/lib/kubernetes/admin.kubeconfig
