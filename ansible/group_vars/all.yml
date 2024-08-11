@@ -1,3 +1,6 @@
 ---
 
 ansible_python_interpreter: /usr/bin/python3.11
+
+node0_subnet: 10.200.0.0/24
+node1_subnet: 10.200.1.0/24

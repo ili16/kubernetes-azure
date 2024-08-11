@@ -6,7 +6,7 @@
     src: downloads/{{ binary }}
     dest: /usr/local/bin/{{ binary }}
     mode: +x
-  loop: 
+  loop:
     - kube-controller-manager
     - kube-scheduler
     - kubectl
@@ -20,7 +20,7 @@
     src: files/units/{{ service_unit }}
     dest: /etc/systemd/system/{{ service_unit }}
     mode: "0640"
-  loop: 
+  loop:
     - kube-apiserver.service
     - kube-controller-manager.service
     - kube-scheduler.service
@@ -30,15 +30,15 @@
 - name: Reload daemon
   become: true
   ansible.builtin.systemd:
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Start services
   become: true
   ansible.builtin.systemd:
     name: "{{ service }}"
     state: started
-    enabled: yes
-  loop: 
+    enabled: true
+  loop:
     - kube-apiserver
     - kube-controller-manager
     - kube-scheduler

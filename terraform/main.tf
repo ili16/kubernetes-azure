@@ -83,7 +83,7 @@ resource "azurerm_network_interface" "node-1-nic" {
       name = "internal"
       subnet_id = azurerm_subnet.kubernetes-subnet.id
       private_ip_address_allocation = "Static"
-      private_ip_address = "10.0.2.20"
+      private_ip_address = "10.0.2.21"
     }
 }
 
@@ -96,7 +96,7 @@ resource "azurerm_network_interface" "node-0-nic" {
       name = "internal"
       subnet_id = azurerm_subnet.kubernetes-subnet.id
       private_ip_address_allocation = "Static"
-      private_ip_address = "10.0.2.21"
+      private_ip_address = "10.0.2.20"
     }
   
 }

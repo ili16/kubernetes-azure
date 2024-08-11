@@ -5,6 +5,7 @@
     src: files/hosts
     dest: /home/adminuser/hosts
     owner: adminuser
+    mode: "0644"
 
 - name: Append to hosts file
   become: true

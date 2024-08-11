@@ -47,8 +47,12 @@
         - name: Include boostraping kubernetes task
           ansible.builtin.include_tasks:
             file: tasks/bootstrap_kubernetes.yml
-  handlers:
-    - name: Restart sshd
-      service:
-        name: sshd
-        state: restarted
+
+    - name: Include boostraping kubernetes worker task
+      when: inventory_hostname in groups['worker']
+      ansible.builtin.include_tasks:
+        file: tasks/bootstrap_kubernetes_worker.yml
+
+    - name: Include pod network task
+      ansible.builtin.include_tasks:
+        file: tasks/provision_pod_network.yml

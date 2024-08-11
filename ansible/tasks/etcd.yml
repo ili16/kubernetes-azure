@@ -10,7 +10,7 @@
 - name: Copy etcd
   become: true
   ansible.builtin.copy:
-    src: /home/adminuser/etcd-v3.4.27-linux-amd64/{{item}}
+    src: /home/adminuser/etcd-v3.4.27-linux-amd64/{{ item }}
     dest: /usr/local/bin/{{item}}
     remote_src: true
     mode: "0755"
@@ -39,7 +39,7 @@
     dest: /etc/systemd/system/etcd.service
     mode: "0640"
 
-- name: copy files
+- name: Copy files
   become: true
   delegate_to: "{{ hostvars[groups['jumpbox'][0]]['ansible_host'] }}"
   ansible.builtin.synchronize:
@@ -66,3 +66,8 @@
 - name: Check etcd status
   become: true
   ansible.builtin.shell: etcdctl member list
+  register: etcd_status
+
+- name: Display etcd status
+  debug:
+    var: etcd_status.stdout

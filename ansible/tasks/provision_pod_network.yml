@@ -1,0 +1,21 @@
+---
+
+- name: Add routes to server
+  when: inventory_hostname in groups['server']
+  become: true
+  ansible.builtin.shell: |
+    ip route replace {{ node0_subnet }} via {{ groups['worker'][0] }}
+    ip route replace {{ node1_subnet }} via {{ groups['worker'][1] }}
+
+
+- name: Add routes to node 0
+  when: inventory_hostname in groups['worker'][0]
+  become: true
+  ansible.builtin.shell: |
+    ip route replace {{ node0_subnet }} via {{ groups['worker'][0] }}
+
+- name: Add routes to node 1
+  when: inventory_hostname in groups['worker'][1]
+  become: true
+  ansible.builtin.shell: |
+    ip route replace {{ node1_subnet }} via {{ groups['worker'][1] }}

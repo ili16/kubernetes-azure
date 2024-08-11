@@ -31,12 +31,6 @@
     args:
       chdir: /home/adminuser
 
-- name: Copy certs template files
-  ansible.builtin.copy:
-    src: files/certs
-    dest: /home/adminuser/certs
-    owner: adminuser
-
 - name: Check if certs are present
   ansible.builtin.stat:
     path: /home/adminuser/service-accounts.crt
@@ -51,7 +45,7 @@
     openssl req -new -key "{{ item }}.key" -sha256 \
       -config "ca.conf" -section {{ item }} \
       -out "{{ item }}.csr"
-    
+
     openssl x509 -req -days 3653 -in "{{ item }}.csr" \
       -copy_extensions copyall \
       -sha256 -CA "ca.crt" \
@@ -69,4 +63,3 @@
     - kube-scheduler
     - kube-proxy
     - service-accounts
-  

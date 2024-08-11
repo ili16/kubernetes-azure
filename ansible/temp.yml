@@ -1,7 +1,7 @@
 ---
 
 - name: Include some file
-  hosts: server
+  hosts: all
   remote_user: adminuser
   gather_facts: true
   tasks:
@@ -9,4 +9,4 @@
       ansible.builtin.include_tasks:
         file: "tasks/{{ item }}"
       loop:
-        - bootstrap_kubernetes.yml
+        - provision_pod_network.yml
